@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { SALESPEOPLE } from "@/lib/salespeople";
 import { User, Phone, Building2, Hash, ChevronDown, CheckCircle } from "lucide-react";
+import Image from "next/image";
 
 const INITIAL_FORM = {
   name: "",
@@ -112,11 +113,14 @@ export default function LeadCapturePage() {
     <div className="min-h-screen bg-[#0f172a] flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between px-5 py-4 border-b border-[#1e293b]">
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
-            IS <span className="text-[#3b82f6]">ExpoLead</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">Captura de contatos</p>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.png" alt="IS Logo" width={44} height={44} className="rounded-full" />
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              IS <span className="text-[#3b82f6]">ExpoLead</span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">Captura de contatos</p>
+          </div>
         </div>
         <a
           href="/admin"

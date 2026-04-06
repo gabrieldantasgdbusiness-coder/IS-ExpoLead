@@ -172,11 +172,14 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-[#0f172a] border-b border-[#1e293b] px-5 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
-              IS <span className="text-[#3b82f6]">ExpoLead</span>
-            </h1>
-            <p className="text-xs text-slate-400 mt-0.5">Dashboard Admin</p>
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="IS Logo" width={40} height={40} className="rounded-full" />
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight">
+                IS <span className="text-[#3b82f6]">ExpoLead</span>
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">Dashboard Admin</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 bg-[#1e293b] px-3 py-1.5 rounded-lg">
