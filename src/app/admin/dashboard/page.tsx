@@ -20,11 +20,23 @@ import {
 import Image from "next/image";
 import * as XLSX from "xlsx";
 
+const CELULAS: Record<string, { label: string; color: string; bg: string }> = {
+  AT: { label: "Amatools",  color: "#fb923c", bg: "#431407" },
+  SB: { label: "Salvabras", color: "#a78bfa", bg: "#2e1065" },
+  ST: { label: "Starrett®", color: "#34d399", bg: "#022c22" },
+};
+
+function getCelula(salesperson: string) {
+  const suffix = salesperson.split("_").pop()?.toUpperCase() ?? "";
+  return CELULAS[suffix] ?? null;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterSalesperson, setFilterSalesperson] = useState("");
+  const [filterCelula, setFilterCelula] = useState("");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -80,6 +92,8 @@ export default function DashboardPage() {
   const filteredLeads = leads.filter((lead) => {
     const matchesSalesperson =
       !filterSalesperson || lead.salesperson_name === filterSalesperson;
+    const suffix = lead.salesperson_name.split("_").pop()?.toUpperCase() ?? "";
+    const matchesCelula = !filterCelula || suffix === filterCelula;
     const searchLower = search.toLowerCase();
     const matchesSearch =
       !search ||
@@ -87,7 +101,7 @@ export default function DashboardPage() {
       lead.phone.includes(search) ||
       (lead.company_name || "").toLowerCase().includes(searchLower) ||
       (lead.cnpj || "").includes(search);
-    return matchesSalesperson && matchesSearch;
+    return matchesSalesperson && matchesCelula && matchesSearch;
   });
 
   function exportToExcel() {
@@ -97,6 +111,7 @@ export default function DashboardPage() {
       Empresa: lead.company_name || "",
       CNPJ: lead.cnpj || "",
       Vendedor: lead.salesperson_name,
+      Célula: getCelula(lead.salesperson_name)?.label ?? "",
       "Data/Hora": formatDate(lead.created_at),
     }));
 
@@ -243,7 +258,23 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="relative sm:w-56">
+          {/* Célula filter */}
+          <div className="relative sm:w-44">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <select
+              value={filterCelula}
+              onChange={(e) => { setFilterCelula(e.target.value); setFilterSalesperson(""); }}
+              className="w-full appearance-none bg-[#1e293b] border border-[#334155] rounded-xl pl-10 pr-8 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors"
+            >
+              <option value="">Todas as células</option>
+              {Object.entries(CELULAS).map(([key, val]) => (
+                <option key={key} value={key}>{val.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Vendedor filter */}
+          <div className="relative sm:w-48">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <select
               value={filterSalesperson}
@@ -251,11 +282,11 @@ export default function DashboardPage() {
               className="w-full appearance-none bg-[#1e293b] border border-[#334155] rounded-xl pl-10 pr-8 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors"
             >
               <option value="">Todos os vendedores</option>
-              {SALESPEOPLE.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
+              {SALESPEOPLE
+                .filter((name) => !filterCelula || name.endsWith(`_${filterCelula}`))
+                .map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
             </select>
           </div>
 
@@ -301,7 +332,7 @@ export default function DashboardPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#334155]">
-                    {["Nome", "Telefone", "Empresa", "CNPJ", "Vendedor", "Data/Hora", ""].map(
+                    {["Nome", "Telefone", "Empresa", "CNPJ", "Célula", "Vendedor", "Data/Hora", ""].map(
                       (col, i) => (
                         <th
                           key={i}
@@ -330,6 +361,19 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-mono text-xs">
                         {lead.cnpj || <span className="text-slate-600">—</span>}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {(() => {
+                          const c = getCelula(lead.salesperson_name);
+                          return c ? (
+                            <span
+                              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                              style={{ color: c.color, backgroundColor: c.bg }}
+                            >
+                              {c.label}
+                            </span>
+                          ) : <span className="text-slate-600">—</span>;
+                        })()}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e3a5f] text-[#60a5fa]">
