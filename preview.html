@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IS ExpoLead — Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; min-height: 100vh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .logo-title { font-size: 20px; font-weight: 700; }
+    .logo-title span { color: #3b82f6; }
+    .logo-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .btn-link {
+      font-size: 12px; color: #64748b; background: none; border: none;
+      cursor: pointer; padding: 6px 12px; border-radius: 8px;
+      transition: background .15s, color .15s;
+    }
+    .btn-link:hover { background: #1e293b; color: #fff; }
+
+    /* ── FORM SCREEN ── */
+    .form-body {
+      flex: 1;
+      padding: 24px 20px 120px;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+    label .req { color: #f87171; }
+    label .opt { color: #64748b; font-weight: 400; font-size: 11px; }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    input, select {
+      width: 100%;
+      background: #1e293b;
+      border: 1.5px solid #334155;
+      border-radius: 12px;
+      padding: 14px 16px 14px 44px;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: border-color .15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input::placeholder { color: #475569; }
+    input:focus, select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+    select { cursor: pointer; }
+    .select-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    /* ── STICKY BUTTON ── */
+    .sticky-btn {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 20px 24px;
+      background: linear-gradient(to top, #0f172a 60%, transparent);
+    }
+    .sticky-btn-inner { max-width: 480px; margin: 0 auto; }
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary.success { background: #22c55e; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      top: 20px; left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      z-index: 999;
+      transition: transform .25s ease;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { border-color: #ef4444; color: #fca5a5; }
+    #toast.success { border-color: #22c55e; color: #86efac; }
+
+    /* ── LOGIN SCREEN ── */
+    .login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+    }
+    .login-card { width: 100%; max-width: 360px; }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .login-logo-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px; height: 64px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #3b82f6;
+      margin-bottom: 16px;
+    }
+    .login-logo h1 { font-size: 22px; font-weight: 700; }
+    .login-logo p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .btn-full {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-full:hover { background: #2563eb; }
+    .back-link {
+      display: block;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+      margin-top: 28px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .back-link:hover { color: #cbd5e1; }
+
+    /* ── DASHBOARD ── */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e293b;
+      position: sticky; top: 0; z-index: 10;
+      background: #0f172a;
+    }
+    .dash-actions { display: flex; align-items: center; gap: 8px; }
+    .chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #1e293b; border-radius: 8px;
+      padding: 6px 12px; font-size: 13px;
+    }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; }
+    .btn-icon {
+      background: none; border: none; color: #64748b;
+      cursor: pointer; padding: 7px; border-radius: 8px;
+      font-size: 16px; transition: background .15s, color .15s;
+    }
+    .btn-icon:hover { background: #1e293b; color: #fff; }
+    .dash-main { padding: 20px; max-width: 960px; margin: 0 auto; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media(min-width: 640px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+    .stat-card {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 12px; padding: 16px;
+    }
+    .stat-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; }
+    .stat-value { font-size: 26px; font-weight: 700; }
+    .stat-value.accent { color: #3b82f6; }
+
+    /* Filters */
+    .filters { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    @media(min-width: 640px) { .filters { flex-direction: row; } }
+    .filter-search { position: relative; flex: 1; }
+    .filter-search input { padding-left: 40px; font-size: 14px; padding-top: 11px; padding-bottom: 11px; }
+    .filter-search .input-icon { font-size: 14px; }
+    .filter-select { position: relative; min-width: 200px; }
+    .filter-select select { padding-left: 40px; font-size: 14px; padding-top: 11px; padding-bottom: 11px; }
+    .btn-export {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 20px; border-radius: 12px;
+      background: #22c55e; color: #fff;
+      font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-export:hover { background: #16a34a; }
+
+    /* Table */
+    .table-card {
+      background: #1e293b; border: 1px solid #334155;
+      border-radius: 16px; overflow: hidden;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid #334155; }
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #1e3a5f22; transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #243044; }
+    td {
+      padding: 12px 16px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    td.name { font-weight: 500; }
+    td.muted { color: #94a3b8; }
+    td.mono { font-family: monospace; font-size: 12px; color: #94a3b8; }
+    td.empty { color: #475569; }
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 99px;
+      font-size: 12px; font-weight: 500;
+      background: #1e3a5f; color: #60a5fa;
+    }
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { color: #94a3b8; font-size: 15px; }
+    .empty-state small { color: #475569; font-size: 13px; margin-top: 4px; display: block; }
+    .table-footer { font-size: 12px; color: #475569; text-align: right; padding: 12px 16px 0; }
+
+    /* Skeleton */
+    .skeleton-row { display: flex; gap: 16px; padding: 14px 16px; }
+    .skel { height: 14px; background: #334155; border-radius: 4px; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* Notice banner */
+    .notice {
+      background: #1e3a5f;
+      border: 1px solid #1d4ed8;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #93c5fd;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ████████ TOAST ████████ -->
+<div id="toast"></div>
+
+<!-- ████████ SCREEN 1 — FORMULÁRIO ████████ -->
+<div class="screen active" id="screen-form">
+  <header>
+    <div>
+      <div class="logo-title">IS <span>ExpoLead</span></div>
+      <div class="logo-sub">Captura de contatos</div>
+    </div>
+    <button class="btn-link" onclick="goTo('screen-login')">Admin</button>
+  </header>
+
+  <div class="form-body">
+    <div class="notice">
+      ⚡ Modo preview — os dados não são salvos. Conecte o Supabase para ativar.
+    </div>
+
+    <div class="field">
+      <label>Nome <span class="req">*</span></label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input id="f-name" type="text" placeholder="Nome completo" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Telefone <span class="req">*</span></label>
+      <div class="input-wrap">
+        <span class="input-icon">📞</span>
+        <input id="f-phone" type="tel" placeholder="(11) 99999-9999" inputmode="numeric" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Empresa <span class="opt">(opcional)</span></label>
+      <div class="input-wrap">
+        <span class="input-icon">🏢</span>
+        <input id="f-company" type="text" placeholder="Nome da empresa" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>CNPJ <span class="opt">(opcional)</span></label>
+      <div class="input-wrap">
+        <span class="input-icon">#</span>
+        <input id="f-cnpj" type="text" placeholder="00.000.000/0001-00" inputmode="numeric" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Vendedor responsável <span class="req">*</span></label>
+      <div class="input-wrap">
+        <select id="f-vendor">
+          <option value="">Selecione seu nome</option>
+          <option>Alexandre Silva</option>
+          <option>Ana Carolina Souza</option>
+          <option>Bruno Ferreira</option>
+          <option>Carlos Eduardo Lima</option>
+          <option>Daniela Martins</option>
+          <option>Eduardo Oliveira</option>
+          <option>Fernanda Costa</option>
+          <option>Gabriel Santos</option>
+          <option>Helena Rodrigues</option>
+          <option>Igor Pereira</option>
+          <option>Juliana Alves</option>
+          <option>Lucas Mendes</option>
+          <option>Mariana Carvalho</option>
+          <option>Nelson Barbosa</option>
+          <option>Patricia Nascimento</option>
+          <option>Rafael Gomes</option>
+          <option>Renata Freitas</option>
+          <option>Rodrigo Araujo</option>
+          <option>Tatiana Moreira</option>
+          <option>Thiago Ribeiro</option>
+        </select>
+        <span class="select-arrow">▼</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticky-btn">
+    <div class="sticky-btn-inner">
+      <button class="btn-primary" id="btn-save" onclick="saveContact()">
+        Salvar contato
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ████████ SCREEN 2 — LOGIN ████████ -->
+<div class="screen" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-box">IS</div>
+        <h1>IS <span style="color:#3b82f6">ExpoLead</span></h1>
+        <p>Acesso administrativo</p>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input id="l-email" type="email" placeholder="seu@email.com" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Senha</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <button class="btn-full" onclick="doLogin()">Entrar</button>
+
+      <a class="back-link" onclick="goTo('screen-form')">← Voltar ao formulário</a>
+    </div>
+  </div>
+</div>
+
+<!-- ████████ SCREEN 3 — DASHBOARD ████████ -->
+<div class="screen" id="screen-dash">
+  <div class="dash-header">
+    <div>
+      <div class="logo-title">IS <span>ExpoLead</span></div>
+      <div class="logo-sub">Dashboard Admin</div>
+    </div>
+    <div class="dash-actions">
+      <div class="chip">
+        <div class="chip-dot"></div>
+        <span id="total-chip">0 leads</span>
+      </div>
+      <button class="btn-icon" title="Sair" onclick="logout()">⬅️</button>
+    </div>
+  </div>
+
+  <div class="dash-main">
+    <div class="notice">
+      ⚡ Modo preview — exibindo dados de exemplo. Conecte o Supabase para ver leads reais.
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total de leads</div>
+        <div class="stat-value" id="s-total">8</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Com empresa</div>
+        <div class="stat-value" id="s-company">6</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Vendedores ativos</div>
+        <div class="stat-value" id="s-vendors">4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Filtrados</div>
+        <div class="stat-value accent" id="s-filtered">8</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-search">
+        <span class="input-icon" style="left:14px;top:50%;transform:translateY(-50%);position:absolute;font-size:13px">🔍</span>
+        <input type="text" id="d-search" placeholder="Buscar por nome, telefone, empresa..." oninput="filterLeads()" />
+      </div>
+      <div class="filter-select">
+        <span class="input-icon" style="left:14px;top:50%;transform:translateY(-50%);position:absolute;font-size:13px">⚙️</span>
+        <select id="d-vendor" onchange="filterLeads()">
+          <option value="">Todos os vendedores</option>
+          <option>Alexandre Silva</option>
+          <option>Ana Carolina Souza</option>
+          <option>Bruno Ferreira</option>
+          <option>Carlos Eduardo Lima</option>
+          <option>Daniela Martins</option>
+          <option>Eduardo Oliveira</option>
+          <option>Fernanda Costa</option>
+          <option>Gabriel Santos</option>
+          <option>Helena Rodrigues</option>
+          <option>Igor Pereira</option>
+          <option>Juliana Alves</option>
+          <option>Lucas Mendes</option>
+          <option>Mariana Carvalho</option>
+          <option>Nelson Barbosa</option>
+          <option>Patricia Nascimento</option>
+          <option>Rafael Gomes</option>
+          <option>Renata Freitas</option>
+          <option>Rodrigo Araujo</option>
+          <option>Tatiana Moreira</option>
+          <option>Thiago Ribeiro</option>
+        </select>
+        <span class="select-arrow" style="right:14px;top:50%;transform:translateY(-50%);position:absolute;pointer-events:none;color:#64748b;font-size:12px">▼</span>
+      </div>
+      <button class="btn-export" onclick="exportCSV()">⬇️ Exportar Excel</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Telefone</th>
+              <th>Empresa</th>
+              <th>CNPJ</th>
+              <th>Vendedor</th>
+              <th>Data/Hora</th>
+            </tr>
+          </thead>
+          <tbody id="leads-tbody"></tbody>
+        </table>
+      </div>
+      <div id="empty-state" class="empty-state" style="display:none">
+        <div class="icon">👥</div>
+        <p>Nenhum resultado encontrado</p>
+        <small>Tente ajustar os filtros</small>
+      </div>
+    </div>
+
+    <div class="table-footer" id="table-footer"></div>
+  </div>
+</div>
+
+<script>
+  // ── MOCK DATA ──
+  const MOCK_LEADS = [
+    { id:1, name:'João Carlos Pereira', phone:'(11) 98765-4321', company:'Metalúrgica Alfa Ltda', cnpj:'12.345.678/0001-90', salesperson:'Rafael Gomes', created_at:'2025-06-12T09:14:00Z' },
+    { id:2, name:'Mariana Souza Lima', phone:'(21) 99834-5612', company:'Ferramentas Beta S.A.', cnpj:'98.765.432/0001-11', salesperson:'Fernanda Costa', created_at:'2025-06-12T09:32:00Z' },
+    { id:3, name:'Roberto Alves', phone:'(31) 97712-3344', company:'Ind. Gama ME', cnpj:'', salesperson:'Rafael Gomes', created_at:'2025-06-12T10:01:00Z' },
+    { id:4, name:'Patrícia Moreira', phone:'(41) 98001-7788', company:'Delta Equipamentos', cnpj:'55.443.221/0001-44', salesperson:'Lucas Mendes', created_at:'2025-06-12T10:45:00Z' },
+    { id:5, name:'Carlos Eduardo Melo', phone:'(51) 99567-2233', company:'', cnpj:'', salesperson:'Thiago Ribeiro', created_at:'2025-06-12T11:10:00Z' },
+    { id:6, name:'Ana Paula Ramos', phone:'(11) 97654-9900', company:'Epsilon Tecnologia', cnpj:'77.001.334/0001-55', salesperson:'Fernanda Costa', created_at:'2025-06-12T11:38:00Z' },
+    { id:7, name:'Diego Fonseca', phone:'(19) 99001-1122', company:'Zeta Indústria', cnpj:'44.123.009/0001-88', salesperson:'Thiago Ribeiro', created_at:'2025-06-12T13:05:00Z' },
+    { id:8, name:'Luciana Torres', phone:'(11) 98888-0011', company:'Eta Comercial', cnpj:'22.987.665/0001-33', salesperson:'Lucas Mendes', created_at:'2025-06-12T14:20:00Z' },
+  ];
+
+  let capturedLeads = [];
+
+  // ── NAVIGATION ──
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + type;
+    setTimeout(() => { t.className = ''; }, 3000);
+  }
+
+  // ── PHONE MASK ──
+  document.getElementById('f-phone').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    this.value = v;
+  });
+
+  // ── CNPJ MASK ──
+  document.getElementById('f-cnpj').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'').slice(0,14);
+    if (v.length > 12) v = `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5,8)}/${v.slice(8,12)}-${v.slice(12)}`;
+    else if (v.length > 8) v = `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5,8)}/${v.slice(8)}`;
+    else if (v.length > 5) v = `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5)}`;
+    else if (v.length > 2) v = `${v.slice(0,2)}.${v.slice(2)}`;
+    this.value = v;
+  });
+
+  // ── SAVE CONTACT ──
+  function saveContact() {
+    const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    const company = document.getElementById('f-company').value.trim();
+    const cnpj = document.getElementById('f-cnpj').value.trim();
+    const vendor = document.getElementById('f-vendor').value;
+
+    if (!name) { showToast('Nome é obrigatório', 'error'); return; }
+    if (!phone) { showToast('Telefone é obrigatório', 'error'); return; }
+    if (!vendor) { showToast('Selecione o vendedor responsável', 'error'); return; }
+
+    capturedLeads.push({
+      id: Date.now(),
+      name, phone,
+      company: company || '',
+      cnpj: cnpj || '',
+      salesperson: vendor,
+      created_at: new Date().toISOString()
+    });
+
+    const btn = document.getElementById('btn-save');
+    btn.classList.add('success');
+    btn.textContent = '✅ Salvo com sucesso!';
+    showToast('Cliente cadastrado com sucesso!', 'success');
+
+    setTimeout(() => {
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-phone').value = '';
+      document.getElementById('f-company').value = '';
+      document.getElementById('f-cnpj').value = '';
+      document.getElementById('f-vendor').value = '';
+      btn.classList.remove('success');
+      btn.textContent = 'Salvar contato';
+    }, 1500);
+  }
+
+  // ── LOGIN ──
+  function doLogin() {
+    const email = document.getElementById('l-email').value.trim().toLowerCase();
+    const pass = document.getElementById('l-pass').value;
+    if (email === 'gabrieldantas@industriasimples.com.br' && pass === 'ISsenha7693@') {
+      showToast('Acesso autorizado', 'success');
+      renderDashboard();
+      setTimeout(() => goTo('screen-dash'), 300);
+    } else {
+      showToast('Email ou senha incorretos', 'error');
+    }
+  }
+
+  function logout() { goTo('screen-login'); }
+
+  // ── DASHBOARD ──
+  function renderDashboard() {
+    const allLeads = [...MOCK_LEADS, ...capturedLeads.map(l => ({
+      ...l, company: l.company || null, cnpj: l.cnpj || null
+    }))];
+    window._allLeads = allLeads;
+    document.getElementById('total-chip').textContent = allLeads.length + ' leads';
+    document.getElementById('s-total').textContent = allLeads.length;
+    document.getElementById('s-company').textContent = allLeads.filter(l => l.company || l.company_name).length;
+    const vendors = new Set(allLeads.map(l => l.salesperson || l.salesperson_name));
+    document.getElementById('s-vendors').textContent = vendors.size;
+    filterLeads();
+  }
+
+  function filterLeads() {
+    const all = window._allLeads || MOCK_LEADS;
+    const search = (document.getElementById('d-search').value || '').toLowerCase();
+    const vendor = document.getElementById('d-vendor').value;
+
+    const filtered = all.filter(l => {
+      const name = l.name || '';
+      const phone = l.phone || '';
+      const company = l.company || l.company_name || '';
+      const cnpj = l.cnpj || '';
+      const sp = l.salesperson || l.salesperson_name || '';
+      const matchV = !vendor || sp === vendor;
+      const matchS = !search || name.toLowerCase().includes(search) || phone.includes(search) || company.toLowerCase().includes(search) || cnpj.includes(search);
+      return matchV && matchS;
+    });
+
+    document.getElementById('s-filtered').textContent = filtered.length;
+    renderTable(filtered, all.length);
+  }
+
+  function renderTable(leads, total) {
+    const tbody = document.getElementById('leads-tbody');
+    const empty = document.getElementById('empty-state');
+    const footer = document.getElementById('table-footer');
+
+    if (leads.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      footer.textContent = '';
+      return;
+    }
+    empty.style.display = 'none';
+    tbody.innerHTML = leads.map(l => {
+      const company = l.company || l.company_name || '';
+      const cnpj = l.cnpj || '';
+      const sp = l.salesperson || l.salesperson_name || '';
+      const dt = new Date(l.created_at).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      return `<tr>
+        <td class="name">${esc(l.name)}</td>
+        <td class="muted">${esc(l.phone)}</td>
+        <td>${company ? esc(company) : '<span class="empty">—</span>'}</td>
+        <td class="mono">${cnpj ? esc(cnpj) : '<span class="empty">—</span>'}</td>
+        <td><span class="badge">${esc(sp)}</span></td>
+        <td class="muted" style="font-size:12px">${dt}</td>
+      </tr>`;
+    }).join('');
+    footer.textContent = `Mostrando ${leads.length} de ${total} leads`;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── EXPORT CSV ──
+  function exportCSV() {
+    const leads = window._allLeads || MOCK_LEADS;
+    const search = (document.getElementById('d-search').value || '').toLowerCase();
+    const vendor = document.getElementById('d-vendor').value;
+    const filtered = leads.filter(l => {
+      const sp = l.salesperson || l.salesperson_name || '';
+      const company = l.company || l.company_name || '';
+      const matchV = !vendor || sp === vendor;
+      const matchS = !search || l.name.toLowerCase().includes(search) || l.phone.includes(search) || company.toLowerCase().includes(search);
+      return matchV && matchS;
+    });
+
+    const rows = [['Nome','Telefone','Empresa','CNPJ','Vendedor','Data/Hora']];
+    filtered.forEach(l => {
+      const dt = new Date(l.created_at).toLocaleString('pt-BR');
+      rows.push([l.name, l.phone, l.company||l.company_name||'', l.cnpj||'', l.salesperson||l.salesperson_name||'', dt]);
+    });
+
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `IS_ExpoLead_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('Arquivo exportado com sucesso!', 'success');
+  }
+
+  // ── ENTER KEY ──
+  document.getElementById('l-pass').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
