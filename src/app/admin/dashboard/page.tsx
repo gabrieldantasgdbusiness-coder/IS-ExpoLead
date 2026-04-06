@@ -14,7 +14,10 @@ import {
   Filter,
   RefreshCw,
   Search,
+  Trash2,
+  X,
 } from "lucide-react";
+import Image from "next/image";
 import * as XLSX from "xlsx";
 
 export default function DashboardPage() {
@@ -23,6 +26,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [filterSalesperson, setFilterSalesperson] = useState("");
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem("is_admin") !== "true") {
@@ -62,6 +67,16 @@ export default function DashboardPage() {
     });
   }
 
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    const { error } = await supabase.from("leads").delete().eq("id", id);
+    if (!error) {
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+    }
+    setDeletingId(null);
+    setConfirmId(null);
+  }
+
   const filteredLeads = leads.filter((lead) => {
     const matchesSalesperson =
       !filterSalesperson || lead.salesperson_name === filterSalesperson;
@@ -89,7 +104,6 @@ export default function DashboardPage() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Leads");
 
-    // Column widths
     ws["!cols"] = [
       { wch: 30 },
       { wch: 18 },
@@ -105,6 +119,56 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
+      {/* Confirm Delete Modal */}
+      {confirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setConfirmId(null)}
+          />
+          <div className="relative bg-[#1e293b] border border-[#334155] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <button
+              onClick={() => setConfirmId(null)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 mx-auto mb-4">
+              <Trash2 className="w-5 h-5 text-red-400" />
+            </div>
+            <h3 className="text-white font-semibold text-center text-lg mb-1">
+              Excluir lead?
+            </h3>
+            <p className="text-slate-400 text-sm text-center mb-6">
+              {leads.find((l) => l.id === confirmId)?.name} será removido permanentemente.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="flex-1 py-2.5 rounded-xl border border-[#334155] text-slate-300 hover:bg-[#334155] transition-colors text-sm font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(confirmId)}
+                disabled={deletingId === confirmId}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors text-sm font-medium disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {deletingId === confirmId ? (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-10 bg-[#0f172a] border-b border-[#1e293b] px-5 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -165,7 +229,6 @@ export default function DashboardPage() {
 
         {/* Filters + Export */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
@@ -177,7 +240,6 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Salesperson filter */}
           <div className="relative sm:w-56">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <select
@@ -194,7 +256,6 @@ export default function DashboardPage() {
             </select>
           </div>
 
-          {/* Export */}
           <button
             onClick={exportToExcel}
             disabled={filteredLeads.length === 0}
@@ -237,10 +298,10 @@ export default function DashboardPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#334155]">
-                    {["Nome", "Telefone", "Empresa", "CNPJ", "Vendedor", "Data/Hora"].map(
-                      (col) => (
+                    {["Nome", "Telefone", "Empresa", "CNPJ", "Vendedor", "Data/Hora", ""].map(
+                      (col, i) => (
                         <th
-                          key={col}
+                          key={i}
                           className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap"
                         >
                           {col}
@@ -262,9 +323,7 @@ export default function DashboardPage() {
                         {lead.phone}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap">
-                        {lead.company_name || (
-                          <span className="text-slate-600">—</span>
-                        )}
+                        {lead.company_name || <span className="text-slate-600">—</span>}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-mono text-xs">
                         {lead.cnpj || <span className="text-slate-600">—</span>}
@@ -276,6 +335,15 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
                         {formatDate(lead.created_at)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => setConfirmId(lead.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all duration-150"
+                          title="Excluir lead"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
