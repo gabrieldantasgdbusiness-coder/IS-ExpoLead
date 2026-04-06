@@ -13,6 +13,7 @@ const INITIAL_FORM = {
   cnpj: "",
   company_name: "",
   salesperson_name: "",
+  tipo_cliente: "Revenda",
 };
 
 export default function LeadCapturePage() {
@@ -77,6 +78,7 @@ export default function LeadCapturePage() {
         cnpj: form.cnpj.trim() || null,
         company_name: form.company_name.trim() || null,
         salesperson_name: form.salesperson_name,
+        tipo_cliente: form.tipo_cliente,
       })
       .select()
       .single();
@@ -235,6 +237,37 @@ export default function LeadCapturePage() {
                 ))}
               </select>
               <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Tipo de Cliente */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-3">
+              Tipo de cliente <span className="text-red-400">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {["Revenda", "Construtora"].map((tipo) => (
+                <label
+                  key={tipo}
+                  className={[
+                    "flex items-center justify-center gap-2 py-4 rounded-xl border-2 cursor-pointer transition-all duration-150 font-medium text-base",
+                    form.tipo_cliente === tipo
+                      ? "border-[#3b82f6] bg-[#1e3a5f] text-white"
+                      : "border-[#334155] bg-[#1e293b] text-slate-400 hover:border-[#475569]",
+                  ].join(" ")}
+                >
+                  <input
+                    type="radio"
+                    name="tipo_cliente"
+                    value={tipo}
+                    checked={form.tipo_cliente === tipo}
+                    onChange={handleChange}
+                    className="sr-only"
+                  />
+                  <span>{tipo === "Revenda" ? "🏪" : "🏗️"}</span>
+                  {tipo}
+                </label>
+              ))}
             </div>
           </div>
         </form>

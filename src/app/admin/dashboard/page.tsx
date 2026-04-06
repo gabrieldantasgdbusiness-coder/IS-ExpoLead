@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [filterSalesperson, setFilterSalesperson] = useState("");
   const [filterCelula, setFilterCelula] = useState("");
+  const [filterTipo, setFilterTipo] = useState("");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export default function DashboardPage() {
       !filterSalesperson || lead.salesperson_name === filterSalesperson;
     const suffix = lead.salesperson_name.split("_").pop()?.toUpperCase() ?? "";
     const matchesCelula = !filterCelula || suffix === filterCelula;
+    const matchesTipo = !filterTipo || (lead.tipo_cliente ?? "Revenda") === filterTipo;
     const searchLower = search.toLowerCase();
     const matchesSearch =
       !search ||
@@ -101,7 +103,7 @@ export default function DashboardPage() {
       lead.phone.includes(search) ||
       (lead.company_name || "").toLowerCase().includes(searchLower) ||
       (lead.cnpj || "").includes(search);
-    return matchesSalesperson && matchesCelula && matchesSearch;
+    return matchesSalesperson && matchesCelula && matchesTipo && matchesSearch;
   });
 
   function exportToExcel() {
@@ -110,8 +112,9 @@ export default function DashboardPage() {
       Telefone: lead.phone,
       Empresa: lead.company_name || "",
       CNPJ: lead.cnpj || "",
-      Vendedor: lead.salesperson_name,
+      Tipo: lead.tipo_cliente ?? "Revenda",
       Célula: getCelula(lead.salesperson_name)?.label ?? "",
+      Vendedor: lead.salesperson_name,
       "Data/Hora": formatDate(lead.created_at),
     }));
 
@@ -258,6 +261,20 @@ export default function DashboardPage() {
             />
           </div>
 
+          {/* Tipo de Cliente filter */}
+          <div className="relative sm:w-40">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <select
+              value={filterTipo}
+              onChange={(e) => setFilterTipo(e.target.value)}
+              className="w-full appearance-none bg-[#1e293b] border border-[#334155] rounded-xl pl-10 pr-8 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors"
+            >
+              <option value="">Todos os tipos</option>
+              <option value="Revenda">🏪 Revenda</option>
+              <option value="Construtora">🏗️ Construtora</option>
+            </select>
+          </div>
+
           {/* Célula filter */}
           <div className="relative sm:w-44">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -332,7 +349,7 @@ export default function DashboardPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#334155]">
-                    {["Nome", "Telefone", "Empresa", "CNPJ", "Célula", "Vendedor", "Data/Hora", ""].map(
+                    {["Nome", "Telefone", "Empresa", "CNPJ", "Tipo", "Célula", "Vendedor", "Data/Hora", ""].map(
                       (col, i) => (
                         <th
                           key={i}
@@ -361,6 +378,17 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap font-mono text-xs">
                         {lead.cnpj || <span className="text-slate-600">—</span>}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {lead.tipo_cliente === "Construtora" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-900/40 text-amber-300">
+                            🏗️ Construtora
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-900/40 text-sky-300">
+                            🏪 Revenda
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         {(() => {

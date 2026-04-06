@@ -5,6 +5,7 @@ export interface Lead {
   cnpj: string | null
   company_name: string | null
   salesperson_name: string
+  tipo_cliente: string | null
   created_at: string
 }
 
