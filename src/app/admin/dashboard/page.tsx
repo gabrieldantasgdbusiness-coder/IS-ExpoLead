@@ -16,6 +16,7 @@ import {
   Search,
   Trash2,
   X,
+  CalendarDays,
 } from "lucide-react";
 import Image from "next/image";
 import * as XLSX from "xlsx";
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const [filterSalesperson, setFilterSalesperson] = useState("");
   const [filterCelula, setFilterCelula] = useState("");
   const [filterTipo, setFilterTipo] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -96,6 +99,9 @@ export default function DashboardPage() {
     const suffix = lead.salesperson_name.split("_").pop()?.toUpperCase() ?? "";
     const matchesCelula = !filterCelula || suffix === filterCelula;
     const matchesTipo = !filterTipo || (lead.tipo_cliente ?? "Revenda") === filterTipo;
+    const leadDate = new Date(lead.created_at);
+    const matchesFrom = !dateFrom || leadDate >= new Date(dateFrom + "T00:00:00");
+    const matchesTo = !dateTo || leadDate <= new Date(dateTo + "T23:59:59");
     const searchLower = search.toLowerCase();
     const matchesSearch =
       !search ||
@@ -103,7 +109,7 @@ export default function DashboardPage() {
       lead.phone.includes(search) ||
       (lead.company_name || "").toLowerCase().includes(searchLower) ||
       (lead.cnpj || "").includes(search);
-    return matchesSalesperson && matchesCelula && matchesTipo && matchesSearch;
+    return matchesSalesperson && matchesCelula && matchesTipo && matchesFrom && matchesTo && matchesSearch;
   });
 
   function exportToExcel() {
@@ -249,7 +255,45 @@ export default function DashboardPage() {
         </div>
 
         {/* Filters + Export */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-3">
+
+          {/* Date range row */}
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <div className="flex items-center gap-2 text-slate-400 text-sm whitespace-nowrap">
+              <CalendarDays className="w-4 h-4" />
+              Período:
+            </div>
+            <div className="flex flex-1 gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full bg-[#1e293b] border border-[#334155] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors [color-scheme:dark]"
+                />
+              </div>
+              <span className="self-center text-slate-500 text-sm">até</span>
+              <div className="relative flex-1">
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full bg-[#1e293b] border border-[#334155] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#3b82f6] transition-colors [color-scheme:dark]"
+                />
+              </div>
+              {(dateFrom || dateTo) && (
+                <button
+                  onClick={() => { setDateFrom(""); setDateTo(""); }}
+                  className="px-3 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#334155] transition-colors text-xs whitespace-nowrap"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Other filters row */}
+          <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
@@ -315,6 +359,7 @@ export default function DashboardPage() {
             <Download className="w-4 h-4" />
             Exportar Excel
           </button>
+          </div>
         </div>
 
         {/* Table */}
