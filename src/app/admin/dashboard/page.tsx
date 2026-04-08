@@ -478,6 +478,82 @@ export default function DashboardPage() {
             Mostrando {filteredLeads.length} de {leads.length} leads
           </p>
         )}
+
+        {/* Ranking */}
+        {leads.length > 0 && (
+          <div>
+            <h2 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
+              🏆 Ranking de captação
+              <span className="text-xs font-normal text-slate-500">
+                {dateFrom || dateTo ? "— período filtrado" : "— geral"}
+              </span>
+            </h2>
+            <div className="bg-[#1e293b] border border-[#334155] rounded-2xl overflow-hidden">
+              {(() => {
+                const counts: Record<string, number> = {};
+                filteredLeads.forEach((l) => {
+                  counts[l.salesperson_name] = (counts[l.salesperson_name] ?? 0) + 1;
+                });
+                const ranking = Object.entries(counts)
+                  .sort((a, b) => b[1] - a[1]);
+                const max = ranking[0]?.[1] ?? 1;
+
+                const medals = ["🥇", "🥈", "🥉"];
+
+                return ranking.length === 0 ? (
+                  <p className="text-slate-500 text-sm text-center py-8">Nenhum dado para exibir</p>
+                ) : (
+                  <div className="divide-y divide-[#334155]">
+                    {ranking.map(([name, count], i) => {
+                      const celula = getCelula(name);
+                      const pct = Math.round((count / max) * 100);
+                      return (
+                        <div key={name} className="flex items-center gap-4 px-5 py-3 hover:bg-[#243044] transition-colors">
+                          {/* Position */}
+                          <div className="w-8 text-center text-lg flex-shrink-0">
+                            {i < 3 ? medals[i] : (
+                              <span className="text-slate-500 text-sm font-bold">{i + 1}º</span>
+                            )}
+                          </div>
+
+                          {/* Name + bar */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="text-sm font-medium text-white truncate">{name}</span>
+                              {celula && (
+                                <span
+                                  className="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                                  style={{ color: celula.color, backgroundColor: celula.bg }}
+                                >
+                                  {celula.label}
+                                </span>
+                              )}
+                            </div>
+                            <div className="h-1.5 bg-[#334155] rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${pct}%`,
+                                  backgroundColor: i === 0 ? "#f59e0b" : i === 1 ? "#94a3b8" : i === 2 ? "#b45309" : "#3b82f6",
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Count */}
+                          <div className="text-right flex-shrink-0">
+                            <span className="text-lg font-bold text-white">{count}</span>
+                            <span className="text-xs text-slate-500 ml-1">lead{count !== 1 ? "s" : ""}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
